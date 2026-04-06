@@ -257,6 +257,45 @@ static void chat(AppInferenceContext *context) {
     printf("(end of context)\n");
 }
 
+#ifdef _WIN32
+    #define EXECUTABLE_NAME "dllama.exe"
+#else
+    #define EXECUTABLE_NAME "dllama"
+#endif
+
+static void usage() {
+    fprintf(stderr, "Usage: %s {inference|perplexity|chat|worker} [options]\n", EXECUTABLE_NAME);
+    fprintf(stderr, "Modes:\n");
+    fprintf(stderr, "  inference  Run prompt completion benchmark\n");
+    fprintf(stderr, "  perplexity Evaluate perplexity for a prompt\n");
+    fprintf(stderr, "  chat       Run interactive CLI chat\n");
+    fprintf(stderr, "  worker     Run a worker node\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  --model <path>\n");
+    fprintf(stderr, "  --tokenizer <path>\n");
+    fprintf(stderr, "  --prompt <prompt>\n");
+    fprintf(stderr, "  --buffer-float-type {f32|f16|q40|q80}\n");
+    fprintf(stderr, "  --workers <ip:port> ...\n");
+    fprintf(stderr, "  --max-seq-len <max>\n");
+    fprintf(stderr, "  --nthreads <n>\n");
+    fprintf(stderr, "  --steps <n>\n");
+    fprintf(stderr, "  --temperature <temp>\n");
+    fprintf(stderr, "  --topp <t>\n");
+    fprintf(stderr, "  --seed <s>\n");
+    fprintf(stderr, "  --host <addr>\n");
+    fprintf(stderr, "  --port <p>\n");
+    fprintf(stderr, "  --chat-template {llama2|llama3|deepSeek3}\n");
+    fprintf(stderr, "  --gpu-index <index>\n");
+    fprintf(stderr, "  --gpu-segments <from>:<to>\n");
+    fprintf(stderr, "  --net-turbo {0|1}\n");
+    fprintf(stderr, "Example:\n");
+    fprintf(stderr, "  ./%s inference --prompt \"Hello world\" --steps 32 \\\n", EXECUTABLE_NAME);
+    fprintf(stderr, "    --model models/.../dllama_model.m \\\n");
+    fprintf(stderr, "    --tokenizer models/.../dllama_tokenizer.t \\\n");
+    fprintf(stderr, "    --buffer-float-type q80 --nthreads 4\n");
+    fflush(stderr);
+}
+
 int main(int argc, char **argv) {
     initQuants();
     initSockets();
@@ -264,6 +303,16 @@ int main(int argc, char **argv) {
     int returnCode = EXIT_SUCCESS;
     try {
         AppCliArgs args = AppCliArgs::parse(argc, argv, true);
+        if (args.help) {
+            usage();
+            cleanupSockets();
+            return EXIT_SUCCESS;
+        }
+        if (args.mode == nullptr) {
+            usage();
+            cleanupSockets();
+            return EXIT_FAILURE;
+        }
         if (std::strcmp(args.mode, "inference") == 0) {
             args.benchmark = true;
             runInferenceApp(&args, &inference);

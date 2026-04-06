@@ -1,5 +1,75 @@
 ![Distributed Llama](.github/cover.png)
 
+# Jetson Orin Nano Distributed Llama
+
+Jetson-focused fork of [b4rtaz/distributed-llama](https://github.com/b4rtaz/distributed-llama), tuned and tested on an NVIDIA Jetson Orin Nano running JetPack 6.2 / L4T 36.4.7.
+
+This fork keeps the upstream project intact and adds:
+
+- safer CLI behavior for `dllama` and `dllama-api`
+- Jetson CPU tuning notes and benchmark scripts
+- Vulkan build compatibility fixes for this Jetson userspace
+- a practical single-node setup for `qwen3_0.6b_q40`
+
+## Jetson Status
+
+What is working on this machine:
+
+- CPU inference
+- CPU API server
+- repeatable CPU benchmarks
+- Vulkan-enabled build
+
+What is still blocked on this machine:
+
+- Vulkan runtime / GPU inference
+
+The current Jetson host can compile the Vulkan backend, but the installed Vulkan ICD fails at instance creation with `ErrorIncompatibleDriver`. That is a system Vulkan/driver problem, not a remaining `d-llama` source problem.
+
+## Recommended Jetson CPU Run
+
+This is the best benchmarked local configuration so far for `qwen3_0.6b_q40`:
+
+```sh
+sudo jetson_clocks
+sudo nice -n -20 ./dllama inference \
+  --prompt "Hello world" \
+  --steps 40 \
+  --model models/qwen3_0.6b_q40/dllama_model_qwen3_0.6b_q40.m \
+  --tokenizer models/qwen3_0.6b_q40/dllama_tokenizer_qwen3_0.6b_q40.t \
+  --buffer-float-type q80 \
+  --nthreads 6 \
+  --max-seq-len 1024
+```
+
+## Benchmarks
+
+Measured on Jetson Orin Nano with `jetson_clocks` enabled:
+
+| Config | Tokens/s Avg | Notes |
+| --- | ---: | --- |
+| `4 threads, seq 2048` | 43.35 | clearly slower |
+| `5 threads, seq 2048` | 49.89 | decent |
+| `6 threads, seq 1024` | 55.79 | fast baseline |
+| `6 threads, seq 2048` | 56.68 | nearly same speed, more context |
+| `nice -20, 6 threads, seq 1024` | 58.06 | best average |
+| `nice -20, 6 threads, seq 2048` | 55.12 | slightly slower |
+
+Run the benchmark matrix with:
+
+```sh
+SUDO_PASSWORD='<your-sudo-password>' ./bench_qwen3_0.6b_q40.sh
+```
+
+## Included Helpers
+
+- `bench_qwen3_0.6b_q40.sh`: repeatable benchmark matrix for the working Jetson CPU path
+- `serve_qwen3_0.6b_q40_api.sh`: local API launcher for the tested model
+
+## Upstream Project
+
+Everything below this section is the upstream project README, preserved as the base project documentation.
+
 # Distributed Llama
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/b4rtaz/distributed-llama/.github%2Fworkflows%2Fmain.yml?style=flat-square)](https://github.com/b4rtaz/distributed-llama/actions) [![License: MIT](https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square)](/LICENSE) [![Discord](https://discordapp.com/api/guilds/1245814812353495070/widget.png?style=shield)](https://n4no.com/projects/distributedLlama/discord.php)

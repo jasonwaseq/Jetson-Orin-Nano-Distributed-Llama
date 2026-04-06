@@ -1,4 +1,7 @@
 .vscode/settings.json
+.DS_Store
+benchmark-results/
+*.log
 
 *.o
 *.0

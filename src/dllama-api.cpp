@@ -672,6 +672,10 @@ int main(int argc, char *argv[]) {
         usage();
         return EXIT_SUCCESS;
     }
+    if (args.modelPath == nullptr || args.tokenizerPath == nullptr) {
+        usage();
+        return EXIT_FAILURE;
+    }
 
     initQuants();
     initSockets();

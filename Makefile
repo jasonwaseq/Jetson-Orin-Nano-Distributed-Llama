@@ -16,7 +16,18 @@ ifdef WVLA
 endif
 
 ifdef DLLAMA_VULKAN
-	CGLSLC = glslc
+	CGLSLC := $(shell command -v glslc 2>/dev/null)
+	ifeq ($(CGLSLC),)
+		CGLSLC := $(shell command -v glslangValidator 2>/dev/null)
+	endif
+	ifeq ($(CGLSLC),)
+		$(error Missing Vulkan shader compiler. Install glslc or glslangValidator)
+	endif
+	ifeq ($(notdir $(CGLSLC)),glslangValidator)
+		CGLSLC_FLAGS = -V
+	else
+		CGLSLC_FLAGS = -c --target-env=vulkan1.2
+	endif
 
 ifeq ($(OS),Windows_NT)
 	LIBS += -L$(VK_SDK_PATH)\lib -lvulkan-1
@@ -70,7 +81,7 @@ VULKAN_SHADER_BINS := $(VULKAN_SHADER_SRCS:.comp=.spv)
 DEPS += $(VULKAN_SHADER_BINS)
 
 %.spv: %.comp
-	$(CGLSLC) -c $< -o $@ --target-env=vulkan1.2
+	$(CGLSLC) $(CGLSLC_FLAGS) $< -o $@
 nn-vulkan-test: src/nn/nn-vulkan-test.cpp nn-quants.o nn-core.o nn-executor.o nn-vulkan.o ${DEPS}
 	$(CXX) $(CXXFLAGS) $(filter-out %.spv, $^) -o $@ $(LIBS)
 endif

@@ -165,6 +165,13 @@ static std::vector<NnExecutorDevice> resolveDevices(AppCliArgs *args, NnNetConfi
     return devices;
 }
 
+static void validateInferenceArgs(AppCliArgs *args) {
+    if (args->modelPath == nullptr)
+        throw std::runtime_error("Model path is required");
+    if (args->tokenizerPath == nullptr)
+        throw std::runtime_error("Tokenizer path is required");
+}
+
 RootLlmInference::RootLlmInference(LlmNet *net, NnNetExecution *execution, NnExecutor *executor, NnNetwork *network) {
     this->header = net->header;
     this->tokenPipe = (float *)execution->pipes[net->tokenPipeIndex];
@@ -230,6 +237,8 @@ bool WorkerLlmInference::tryReadControlPacket() {
 }
 
 void runInferenceApp(AppCliArgs *args, void (*handler)(AppInferenceContext *context)) {
+    validateInferenceArgs(args);
+
     NnUint nNodes = args->nWorkers + 1;
 
     LlmHeader header = loadLlmHeader(args->modelPath, args->maxSeqLen, args->syncType);
