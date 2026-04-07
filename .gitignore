@@ -9,10 +9,18 @@ benchmark-results/
 *.data
 *.temp
 *.tmp
+*.bak
 __pycache__
+.venv/
+.tmp/
 
 *-test
 /models
+!/models/
+!/models/qwen3_0.6b_q40/
+/models/qwen3_0.6b_q40/*
+!/models/qwen3_0.6b_q40/
+!/models/qwen3_0.6b_q40/dllama_tokenizer_qwen3_0.6b_q40.t
 main
 run*.sh
 server

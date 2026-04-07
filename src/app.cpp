@@ -27,6 +27,7 @@ AppCliArgs AppCliArgs::parse(int argc, char* *argv, bool requireMode) {
     args.help = false;
     args.mode = nullptr;
     args.nBatches = 32;
+    bool nBatchesExplicit = false;
     args.nThreads = 1;
     args.modelPath = nullptr;
     args.tokenizerPath = nullptr;
@@ -102,6 +103,9 @@ AppCliArgs AppCliArgs::parse(int argc, char* *argv, bool requireMode) {
             args.host = value;
         } else if (std::strcmp(name, "--nthreads") == 0) {
             args.nThreads = atoi(value);
+        } else if (std::strcmp(name, "--n-batches") == 0) {
+            args.nBatches = (unsigned int)atoi(value);
+            nBatchesExplicit = true;
         } else if (std::strcmp(name, "--steps") == 0) {
             args.steps = atoi(value);
         } else if (std::strcmp(name, "--temperature") == 0) {
@@ -129,8 +133,13 @@ AppCliArgs AppCliArgs::parse(int argc, char* *argv, bool requireMode) {
         }
     }
 
+    if (!nBatchesExplicit && args.gpuIndex >= 0)
+        args.nBatches = 1;
+
     if (args.nThreads < 1)
         throw std::runtime_error("Number of threads must be at least 1");
+    if (args.nBatches < 1)
+        throw std::runtime_error("Number of batches must be at least 1");
     return args;
 }
 

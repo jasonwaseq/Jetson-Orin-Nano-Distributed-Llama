@@ -278,6 +278,7 @@ static void usage() {
     fprintf(stderr, "  --workers <ip:port> ...\n");
     fprintf(stderr, "  --max-seq-len <max>\n");
     fprintf(stderr, "  --nthreads <n>\n");
+    fprintf(stderr, "  --n-batches <n>\n");
     fprintf(stderr, "  --steps <n>\n");
     fprintf(stderr, "  --temperature <temp>\n");
     fprintf(stderr, "  --topp <t>\n");
@@ -292,7 +293,7 @@ static void usage() {
     fprintf(stderr, "  ./%s inference --prompt \"Hello world\" --steps 32 \\\n", EXECUTABLE_NAME);
     fprintf(stderr, "    --model models/.../dllama_model.m \\\n");
     fprintf(stderr, "    --tokenizer models/.../dllama_tokenizer.t \\\n");
-    fprintf(stderr, "    --buffer-float-type q80 --nthreads 4\n");
+    fprintf(stderr, "    --buffer-float-type q80 --nthreads 4 --n-batches 32\n");
     fflush(stderr);
 }
 

@@ -649,6 +649,7 @@ void usage() {
     fprintf(stderr, "        [--weights-float-type {f32|f16|q40|q80}]\n");
     fprintf(stderr, "        [--max-seq-len <max>]\n");
     fprintf(stderr, "        [--nthreads <n>]\n");
+    fprintf(stderr, "        [--n-batches <n>]\n");
     fprintf(stderr, "        [--workers <ip:port> ...]\n");
     fprintf(stderr, "        [--temperature <temp>]\n");
     fprintf(stderr, "        [--topp <t>]\n");
@@ -657,7 +658,7 @@ void usage() {
     fprintf(stderr, "  sudo nice -n -20 ./dllama-api --port 9990 --nthreads 4 \\\n");
     fprintf(stderr, "    --model dllama_model_llama3_2_3b_instruct_q40.m \\\n");
     fprintf(stderr, "    --tokenizer dllama_tokenizer_llama3_2_3b_instruct_q40.t \\\n");
-    fprintf(stderr, "    --buffer-float-type q80 --max-seq-len 8192 \\\n");
+    fprintf(stderr, "    --buffer-float-type q80 --max-seq-len 8192 --n-batches 32 \\\n");
     fprintf(stderr, "    --workers 10.0.0.2:9998 10.0.0.3:9998 10.0.0.4:9998\n");
     fflush(stderr);
 }

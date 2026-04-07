@@ -9,22 +9,51 @@ This fork keeps the upstream project intact and adds:
 - safer CLI behavior for `dllama` and `dllama-api`
 - Jetson CPU tuning notes and benchmark scripts
 - Vulkan build compatibility fixes for this Jetson userspace
+- corrected on-disk tokenizer artifact for `qwen3_0.6b_q40`
 - a practical single-node setup for `qwen3_0.6b_q40`
 
 ## Jetson Status
 
 What is working on this machine:
 
+- full Jetson Vulkan inference for `qwen3_0.6b_q40`
+- full Jetson Vulkan API server for `qwen3_0.6b_q40`
 - CPU inference
 - CPU API server
 - repeatable CPU benchmarks
 - Vulkan-enabled build
+- Vulkan runtime / GPU enumeration
 
-What is still blocked on this machine:
+After reboot, the Jetson host now reaches the NVIDIA Vulkan ICD successfully and can enumerate `GPU0` as `NVIDIA Tegra Orin (nvgpu)`.
 
-- Vulkan runtime / GPU inference
+The runtime now exposes `--n-batches <n>`, and GPU mode defaults to `nBatches=1` unless you override it. That avoids building a 32-batch execution graph for single-token Jetson GPU runs and is the key change that makes the Jetson GPU path viable on this host.
 
-The current Jetson host can compile the Vulkan backend, but the installed Vulkan ICD fails at instance creation with `ErrorIncompatibleDriver`. That is a system Vulkan/driver problem, not a remaining `d-llama` source problem.
+The checked-in `models/qwen3_0.6b_q40/dllama_tokenizer_qwen3_0.6b_q40.t` was regenerated from the upstream `Qwen/Qwen3-0.6B` tokenizer sources, so the local Qwen run no longer depends on runtime vocab padding and now starts cleanly with the full `151936` token vocab on disk.
+
+Measured during this tuning pass, the full GPU configuration below delivered about `36.6 tokens/s` in prediction on this host, versus about `4.4 tokens/s` for the untuned CPU-only comparison run I captured in the same environment.
+
+## Recommended Jetson GPU Run
+
+```sh
+sudo jetson_clocks
+sudo nice -n -20 ./dllama inference \
+  --prompt "Hello world" \
+  --steps 40 \
+  --model models/qwen3_0.6b_q40/dllama_model_qwen3_0.6b_q40.m \
+  --tokenizer models/qwen3_0.6b_q40/dllama_tokenizer_qwen3_0.6b_q40.t \
+  --buffer-float-type q80 \
+  --nthreads 1 \
+  --n-batches 1 \
+  --gpu-index 0 \
+  --max-seq-len 1024
+```
+
+If you want the bundled launcher to apply those automatically when sudo is available, use:
+
+```sh
+SUDO_PASSWORD='<your-sudo-password>' ./run_qwen3_0.6b_q40.sh
+SUDO_PASSWORD='<your-sudo-password>' ./serve_qwen3_0.6b_q40_api.sh
+```
 
 ## Recommended Jetson CPU Run
 
@@ -39,6 +68,7 @@ sudo nice -n -20 ./dllama inference \
   --tokenizer models/qwen3_0.6b_q40/dllama_tokenizer_qwen3_0.6b_q40.t \
   --buffer-float-type q80 \
   --nthreads 6 \
+  --n-batches 32 \
   --max-seq-len 1024
 ```
 
@@ -63,7 +93,7 @@ SUDO_PASSWORD='<your-sudo-password>' ./bench_qwen3_0.6b_q40.sh
 
 ## Included Helpers
 
-- `bench_qwen3_0.6b_q40.sh`: repeatable benchmark matrix for the working Jetson CPU path
+- `bench_qwen3_0.6b_q40.sh`: repeatable benchmark matrix for Jetson GPU and CPU paths
 - `serve_qwen3_0.6b_q40_api.sh`: local API launcher for the tested model
 
 ## Upstream Project

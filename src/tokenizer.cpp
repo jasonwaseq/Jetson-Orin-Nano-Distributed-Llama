@@ -52,7 +52,9 @@ static uint64_t calcStringHash(const char *s) {
 Tokenizer::Tokenizer(const char* tokenizerPath)
     : eosTokenIds() {
     bosId = -1;
+    addBos = false;
     chatTemplate = nullptr;
+    specialVocab = nullptr;
     maxTokenLength = 0;
 
     // read in the file
