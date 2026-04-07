@@ -10,6 +10,7 @@ This fork keeps the upstream project intact and adds:
 - Jetson CPU tuning notes and benchmark scripts
 - Vulkan build compatibility fixes for this Jetson userspace
 - corrected on-disk tokenizer artifact for `qwen3_0.6b_q40`
+- SBCC preflight documentation and compliance checklist
 - a practical single-node setup for `qwen3_0.6b_q40`
 
 ## Jetson Status
@@ -95,6 +96,19 @@ SUDO_PASSWORD='<your-sudo-password>' ./bench_qwen3_0.6b_q40.sh
 
 - `bench_qwen3_0.6b_q40.sh`: repeatable benchmark matrix for Jetson GPU and CPU paths
 - `serve_qwen3_0.6b_q40_api.sh`: local API launcher for the tested model
+- `sbcc_preflight.sh`: checks MPI presence and validates declared SBCC hardware/power/MSRP inputs
+
+## SBCC Notes
+
+SBCC 2026 rules currently require at least 4 sockets of the same type, MPI, a 250 W power cap, and a $6,000 MSRP cap.
+
+This repository covers the D-LLAMA workload and Jetson tuning path, but it does not by itself prove full SBCC compliance because socket count, same-socket-type hardware, total power, total MSRP, and competition-hour operations are cluster-level concerns.
+
+See [docs/SBCC_REQUIREMENTS.md](/home/hpcslug/clone/distributed-llama/docs/SBCC_REQUIREMENTS.md) and run:
+
+```sh
+./sbcc_preflight.sh
+```
 
 ## Upstream Project
 
